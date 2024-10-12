@@ -246,7 +246,7 @@ testprog6 = "y := 1; y := y = x"
  
 -- to see the error reporting
 
--- 3
+-- 3.
 -- Write new semantic equations (in the same style as the equations in chapter two of Mike
 -- Gordon’s book, as used in the lectures) for TINY that give semantics to the following:
 
@@ -255,4 +255,11 @@ testprog6 = "y := 1; y := y = x"
 -- (b) C[[if E then C]]s = (E[[E]]s = (v, s1)) -> (isBool v -> (v -> C[[C]]s1), s1), error
 
 -- (c) C[[repeat C until E]]s = (C[[C]]s = s1) -> (E[[E]]s1 = (v, s2) -> (isBool v -> (v -> C[[repeat C until E]]s2, s2), error), error), error
+
+-- 4.
+--    C[[x := read; output x]]({}, <1,2>, <3>)
+-- -> C[[x := read; output x]]({}, <1,2>, <3>) = (C[[x := read; output x]]({}, <1,2>, <3>) = error) -> error, C[output x]({x -> 1}, <2>, <3>) (C5)
+-- -> C[[x := read]]({}, <1,2>, <3>) = ((E[[read]]({}, <1,2>, <3>) = (1, ({}, <2>, <3>))) -> ({x -> 1}, <2>, <3>), error (C1)
+-- -> C[[output x]]({x -> 1}, <2>, <3>) = ((E[[x]]({x -> 1}, <2>, <3>) = (1, ({x -> 1}, <2>, <3>))) -> ({x -> 1}, <2>, <1,3>), error (C2)
+-- -> ({x -> 1}, <2>, <1,3>)
 

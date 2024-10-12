@@ -165,7 +165,16 @@ cmd_semantics (Output exp) s =
     OK v1 (m1, i1, o1) -> OKc (m1, i1, o1 ++ [v1])
     Error -> Errorc
 
--- cmd_semantics (IfThenElse exp cmd1 cmd2) s = For you to do!
+-- Semantics of the 'IfThenElse' expression
+cmd_semantics (IfThenElse exp cmd1 cmd2) s =
+    case (exp_semantics exp s) of
+        -- If the expression is a boolean with a value of True, we evaluate the command cmd1
+        OK (Boolean True) s1 -> cmd_semantics cmd1 s1
+        -- If the expression is a boolean with a value of False, we evaluate the command cmd2
+        OK (Boolean False) s1 -> cmd_semantics cmd2 s1
+        -- If the expression is a numeric value, we return an error
+        OK (Numeric v) s1 -> Errorc
+        Error -> Errorc
 
 -- cmd_semantics (WhileDo exp cmd) s = For you to do!
 

@@ -176,7 +176,16 @@ cmd_semantics (IfThenElse exp cmd1 cmd2) s =
         OK (Numeric v) s1 -> Errorc
         Error -> Errorc
 
--- cmd_semantics (WhileDo exp cmd) s = For you to do!
+-- Semantics of the 'WhileDo' expression
+cmd_semantics (WhileDo exp cmd) s = 
+    case (exp_semantics exp s) of
+    -- If the expression is a boolean with a value of True, we evaluate the command cmd and then evaluate the while loop again
+    OK (Boolean True) s1 -> cmd_semantics (Seq cmd (WhileDo exp cmd)) s1
+    -- If the expression is a boolean with a value of False, we return the state
+    OK (Boolean False) s1 -> OKc s1
+    -- If the expression is a numeric value, we return an error
+    OK (Numeric v) s1 -> Errorc
+    Error -> Errorc
 
 
 cmd_semantics (Seq cmd1 cmd2) s =

@@ -72,7 +72,10 @@ cmd_semantics :: Cmd -> State -> CmdVal
 --        with variables x, y and z---no others!
 
 display :: Memory -> String
-display (m, j) = concat[x ++ "=" ++ show (j x) ++ " " | x <- m]
+display (m, j) = "(" ++ concat [x ++ " = " ++ showVal (j x) ++ "," | x <- m] ++ ") "
+  where
+    showVal (Stored v) = show v
+    showVal Unbound = "Unbound"
 
 
 -- 3. Semantic Equations defining the semantic functions
@@ -87,14 +90,14 @@ exp_semantics TT s = OK (Boolean True) s
 
 exp_semantics FF s = OK (Boolean False) s
 
-exp_semantics Read ((m, j), [], o) = error (display (m, j) ++ "Input: " ++ "[] " ++ "Output: " ++ show o)
+exp_semantics Read ((m, j), [], o) = error ("Memory: " ++ display (m, j) ++ "Input: " ++ "[] " ++ "Output: " ++ show o)
 
 exp_semantics Read ((m, j), (i:is), o) = OK i ((m, j), is, o)
 
 exp_semantics (I ident) ((m, j), i, o) =
  case (j ident) of
     Stored v  -> OK v ((m, j), i, o)
-    Unbound   -> error (display (m, j) ++ "Input: " ++ show i ++ " " ++ "Output: " ++ show o)
+    Unbound   -> error ("Memory: " ++ display (m, j) ++ "Input: " ++ show i ++ " " ++ "Output: " ++ show o)
 
 -- Semantics of the 'Not' expression
 exp_semantics (Not exp) s =
@@ -104,7 +107,7 @@ exp_semantics (Not exp) s =
     -- If the expression is a numeric value, we return an error
     OK (Numeric v) s1 -> Error
     -- Else, we return an error
-    Error -> error (display (m, j) ++ "Input: " ++ show i ++ " " ++ "Output: " ++ show o)
+    Error -> error ("Memory: " ++ display (m, j) ++ "Input: " ++ show i ++ " " ++ "Output: " ++ show o)
                 where ((m, j),i,o) = s
 
 exp_semantics (Equal exp1 exp2) s =
@@ -112,14 +115,14 @@ exp_semantics (Equal exp1 exp2) s =
    OK (Numeric v1) s1 -> case (exp_semantics exp2 s1) of 
                            OK (Numeric v2) s2 -> OK (Boolean (v1 == v2)) s2
                            OK (Boolean v2) s2 -> OK (Boolean False) s2
-                           Error -> error (display (m, j) ++ "Input: " ++ show i ++ " " ++ "Output: " ++ show o)
+                           Error -> error ("Memory: " ++ display (m, j) ++ "Input: " ++ show i ++ " " ++ "Output: " ++ show o)
                                     where ((m, j),i,o) = s1
    OK (Boolean v1) s1 -> case (exp_semantics exp2 s1) of 
                            OK (Boolean v2) s2 -> OK (Boolean (v1 == v2)) s2
                            OK (Numeric v2) s2 -> OK (Boolean False) s2
-                           Error -> error (display (m, j) ++ "Input: " ++ show i ++ " " ++ "Output: " ++ show o)
+                           Error -> error ("Memory: " ++ display (m, j) ++ "Input: " ++ show i ++ " " ++ "Output: " ++ show o)
                                     where ((m, j),i,o) = s1
-   Error -> error (display (m, j) ++ "Input: " ++ show i ++ " " ++ "Output: " ++ show o)
+   Error -> error ("Memory: " ++ display (m, j) ++ "Input: " ++ show i ++ " " ++ "Output: " ++ show o)
             where ((m, j),i,o) = s
 
 -- Semantics of the 'Plus' expression
@@ -131,12 +134,12 @@ exp_semantics (Plus exp1 exp2) s =
                             OK (Numeric v2) s2 -> OK (Numeric (v1 + v2)) s2
                             -- If the second expression is a boolean value, we return an error
                             OK (Boolean v2) s2 -> Error
-                            Error -> error (display (m, j) ++ "Input: " ++ show i ++ " " ++ "Output: " ++ show o)
+                            Error -> error ("Memory: " ++ display (m, j) ++ "Input: " ++ show i ++ " " ++ "Output: " ++ show o)
                                         where ((m, j),i,o) = s1
     -- If the first expression is a boolean value, we return an error
-    OK (Boolean v1) s1 -> error (display m ++ "Input: " ++ show i ++ " " ++ "Output: " ++ show o)
-                                        where (m,i,o) = s1
-    Error -> error (display (m, j) ++ "Input: " ++ show i ++ " " ++ "Output: " ++ show o)
+    OK (Boolean v1) s1 -> error ("Memory: " ++ display (m, j) ++ "Input: " ++ show i ++ " " ++ "Output: " ++ show o)
+                                        where ((m, j),i,o) = s1
+    Error -> error ("Memory: " ++ display (m, j) ++ "Input: " ++ show i ++ " " ++ "Output: " ++ show o)
                 where ((m, j),i,o) = s 
 
 -- Assignment statements perform a memory updating operation.

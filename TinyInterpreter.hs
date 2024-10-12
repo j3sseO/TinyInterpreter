@@ -1,3 +1,7 @@
+-- COMPX307 Coursework 4
+-- Jesse OConnor
+-- 1534760
+
 -- The version with display added so we can do error diagnostics
 -- NOTE WE CAN DO THIS ONLY FOR VARIABLES x, y and z
 
@@ -150,11 +154,13 @@ exp_semantics (Plus exp1 exp2) s =
 -- original memory function to retrieve values associated with
 -- other identifiers.
 
+-- Function to search for an identifier in the memory
 searchMem _ [] = False
 searchMem n (x:xs)
   | n == x = True
   | otherwise = searchMem n xs
 
+-- Function to update the memory with a new identifier-value mapping
 update (m, j) ide val =
   let newMem = if searchMem ide m then m else ide : m
       newJ ide2 = if ide == ide2 then Stored val else j ide2

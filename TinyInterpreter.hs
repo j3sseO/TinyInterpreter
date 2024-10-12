@@ -245,3 +245,14 @@ testprog6 = "y := 1; y := y = x"
 --    run testprog6 [ ]
  
 -- to see the error reporting
+
+-- 3
+-- Write new semantic equations (in the same style as the equations in chapter two of Mike
+-- Gordon’s book, as used in the lectures) for TINY that give semantics to the following:
+
+-- (a) C[[skip]]s = s
+
+-- (b) C[[if E then C]]s = (E[[E]]s = (v, s1)) -> (isBool v -> (v -> C[[C]]s1), s1), error
+
+-- (c) C[[repeat C until E]]s = (C[[C]]s = s1) -> (E[[E]]s1 = (v, s2) -> (isBool v -> (v -> C[[repeat C until E]]s2, s2), error), error), error
+

@@ -96,7 +96,14 @@ exp_semantics (I ident) (m, i, o) =
     Stored v  -> OK v (m, i, o)
     Unbound   -> error (display m ++ "Input: " ++ show i ++ " " ++ "Output: " ++ show o)
 
--- exp_semantics (Not exp) s =  For you to do!
+-- Semantics of the 'Not' expression
+exp_semantics (Not exp) s =
+    case (exp_semantics exp s) of
+    -- If the expression is a boolean, then we negate it
+    OK (Boolean v) s1 -> OK (Boolean (not v)) s1
+    -- Else, we return an error
+    Error -> error (display m ++ "Input: " ++ show i ++ " " ++ "Output: " ++ show o)
+                where (m,i,o) = s
 
 exp_semantics (Equal exp1 exp2) s =
  case (exp_semantics exp1 s) of

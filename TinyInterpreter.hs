@@ -101,6 +101,8 @@ exp_semantics (Not exp) s =
     case (exp_semantics exp s) of
     -- If the expression is a boolean, then we negate it
     OK (Boolean v) s1 -> OK (Boolean (not v)) s1
+    -- If the expression is a numeric value, we return an error
+    OK (Numeric v) s1 -> Error
     -- Else, we return an error
     Error -> error (display m ++ "Input: " ++ show i ++ " " ++ "Output: " ++ show o)
                 where (m,i,o) = s
@@ -120,7 +122,22 @@ exp_semantics (Equal exp1 exp2) s =
    Error -> error (display m ++ "Input: " ++ show i ++ " " ++ "Output: " ++ show o)
             where (m,i,o) = s
 
--- exp_semantics (Plus exp1 exp2) s = For you to do!
+-- Semantics of the 'Plus' expression
+exp_semantics (Plus exp1 exp2) s = 
+    case (exp_semantics exp1 s) of
+    -- If the first expression is a numeric value, we continue to evaluate the second expression
+    OK (Numeric v1) s1 -> case (exp_semantics exp2 s1) of 
+                            -- If the second expression is a numeric value, we add the two values
+                            OK (Numeric v2) s2 -> OK (Numeric (v1 + v2)) s2
+                            -- If the second expression is a boolean value, we return an error
+                            OK (Boolean v2) s2 -> Error
+                            Error -> error (display m ++ "Input: " ++ show i ++ " " ++ "Output: " ++ show o)
+                                        where (m,i,o) = s1
+    -- If the first expression is a boolean value, we return an error
+    OK (Boolean v1) s1 -> error (display m ++ "Input: " ++ show i ++ " " ++ "Output: " ++ show o)
+                                        where (m,i,o) = s1
+    Error -> error (display m ++ "Input: " ++ show i ++ " " ++ "Output: " ++ show o)
+                where (m,i,o) = s 
 
 -- Assignment statements perform a memory updating operation.
 -- A memory is represented as a function which returns the

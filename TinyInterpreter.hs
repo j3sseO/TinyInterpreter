@@ -72,7 +72,7 @@ cmd_semantics :: Cmd -> State -> CmdVal
 --        with variables x, y and z---no others!
 
 display :: Memory -> String
-display (m, n) = concat[x ++ "=" ++ show (n x) ++ " " | x <- m]
+display (m, j) = concat[x ++ "=" ++ show (j x) ++ " " | x <- m]
 
 
 -- 3. Semantic Equations defining the semantic functions
@@ -87,14 +87,14 @@ exp_semantics TT s = OK (Boolean True) s
 
 exp_semantics FF s = OK (Boolean False) s
 
-exp_semantics Read ((m, n), [], o) = error (display (m, n) ++ "Input: " ++ "[] " ++ "Output: " ++ show o)
+exp_semantics Read ((m, j), [], o) = error (display (m, j) ++ "Input: " ++ "[] " ++ "Output: " ++ show o)
 
-exp_semantics Read ((m, n), (i:is), o) = OK i ((m, n), is, o)
+exp_semantics Read ((m, j), (i:is), o) = OK i ((m, j), is, o)
 
-exp_semantics (I ident) ((m, n), i, o) =
- case (n ident) of
-    Stored v  -> OK v ((m, n), i, o)
-    Unbound   -> error (display (m, n) ++ "Input: " ++ show i ++ " " ++ "Output: " ++ show o)
+exp_semantics (I ident) ((m, j), i, o) =
+ case (j ident) of
+    Stored v  -> OK v ((m, j), i, o)
+    Unbound   -> error (display (m, j) ++ "Input: " ++ show i ++ " " ++ "Output: " ++ show o)
 
 -- Semantics of the 'Not' expression
 exp_semantics (Not exp) s =
@@ -104,23 +104,23 @@ exp_semantics (Not exp) s =
     -- If the expression is a numeric value, we return an error
     OK (Numeric v) s1 -> Error
     -- Else, we return an error
-    Error -> error (display (m, n) ++ "Input: " ++ show i ++ " " ++ "Output: " ++ show o)
-                where ((m, n),i,o) = s
+    Error -> error (display (m, j) ++ "Input: " ++ show i ++ " " ++ "Output: " ++ show o)
+                where ((m, j),i,o) = s
 
 exp_semantics (Equal exp1 exp2) s =
  case (exp_semantics exp1 s) of
    OK (Numeric v1) s1 -> case (exp_semantics exp2 s1) of 
                            OK (Numeric v2) s2 -> OK (Boolean (v1 == v2)) s2
                            OK (Boolean v2) s2 -> OK (Boolean False) s2
-                           Error -> error (display (m, n) ++ "Input: " ++ show i ++ " " ++ "Output: " ++ show o)
-                                    where ((m, n),i,o) = s1
+                           Error -> error (display (m, j) ++ "Input: " ++ show i ++ " " ++ "Output: " ++ show o)
+                                    where ((m, j),i,o) = s1
    OK (Boolean v1) s1 -> case (exp_semantics exp2 s1) of 
                            OK (Boolean v2) s2 -> OK (Boolean (v1 == v2)) s2
                            OK (Numeric v2) s2 -> OK (Boolean False) s2
-                           Error -> error (display (m, n) ++ "Input: " ++ show i ++ " " ++ "Output: " ++ show o)
-                                    where ((m, n),i,o) = s1
-   Error -> error (display (m, n) ++ "Input: " ++ show i ++ " " ++ "Output: " ++ show o)
-            where ((m, n),i,o) = s
+                           Error -> error (display (m, j) ++ "Input: " ++ show i ++ " " ++ "Output: " ++ show o)
+                                    where ((m, j),i,o) = s1
+   Error -> error (display (m, j) ++ "Input: " ++ show i ++ " " ++ "Output: " ++ show o)
+            where ((m, j),i,o) = s
 
 -- Semantics of the 'Plus' expression
 exp_semantics (Plus exp1 exp2) s = 
@@ -131,13 +131,13 @@ exp_semantics (Plus exp1 exp2) s =
                             OK (Numeric v2) s2 -> OK (Numeric (v1 + v2)) s2
                             -- If the second expression is a boolean value, we return an error
                             OK (Boolean v2) s2 -> Error
-                            Error -> error (display (m, n) ++ "Input: " ++ show i ++ " " ++ "Output: " ++ show o)
-                                        where ((m, n),i,o) = s1
+                            Error -> error (display (m, j) ++ "Input: " ++ show i ++ " " ++ "Output: " ++ show o)
+                                        where ((m, j),i,o) = s1
     -- If the first expression is a boolean value, we return an error
     OK (Boolean v1) s1 -> error (display m ++ "Input: " ++ show i ++ " " ++ "Output: " ++ show o)
                                         where (m,i,o) = s1
-    Error -> error (display (m, n) ++ "Input: " ++ show i ++ " " ++ "Output: " ++ show o)
-                where ((m, n),i,o) = s 
+    Error -> error (display (m, j) ++ "Input: " ++ show i ++ " " ++ "Output: " ++ show o)
+                where ((m, j),i,o) = s 
 
 -- Assignment statements perform a memory updating operation.
 -- A memory is represented as a function which returns the
@@ -147,8 +147,15 @@ exp_semantics (Plus exp1 exp2) s =
 -- original memory function to retrieve values associated with
 -- other identifiers.
 
-update (m, n) ide val =
-  (m, \ide2 -> if ide == ide2 then Stored val else n ide2)
+searchMem _ [] = False
+searchMem n (x:xs)
+  | n == x = True
+  | otherwise = searchMem n xs
+
+update (m, j) ide val =
+  let newMem = if searchMem ide m then m else ide : m
+      newJ ide2 = if ide == ide2 then Stored val else j ide2
+  in (newMem, newJ)
 
 -- We will later need a function to initialize an "empty" memory
 -- that returns Unbound for every identifier.
@@ -201,7 +208,7 @@ cmd_semantics (Seq cmd1 cmd2) s =
 
 run program input =
   case (cmd_semantics parsed_program (([], emptyMem), input, [])) of
-    OKc ((m, n), i, o) -> o
+    OKc ((m, j), i, o) -> o
     Errorc -> [ERROR]
   where parsed_program = cparse program
 
